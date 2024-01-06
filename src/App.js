@@ -9,16 +9,15 @@ function Square({ value, onSquareClick }) {
 }
 
 function Board({ xIsNext, squares, onPlay }) {
-
   function handleClick(i) {
     if (calculateWinner(squares) || squares[i]) {
       return;
     }
     const nextSquares = squares.slice();
     if (xIsNext) {
-      nextSquares[i] = "X";
+      nextSquares[i] = 'X';
     } else {
-      nextSquares[i] = "O";
+      nextSquares[i] = 'O';
     }
     onPlay(nextSquares);
   }
@@ -26,9 +25,9 @@ function Board({ xIsNext, squares, onPlay }) {
   const winner = calculateWinner(squares);
   let status;
   if (winner) {
-    status = "Ganador: " + winner;
+    status = 'Winner: ' + winner;
   } else {
-    status = "Siguiente Jugador: " + (xIsNext ? "X" : "O");
+    status = 'Next player: ' + (xIsNext ? 'X' : 'O');
   }
 
   return (
@@ -54,65 +53,51 @@ function Board({ xIsNext, squares, onPlay }) {
 }
 
 
-export default function Game() {
+/*
+En la historia del juego de tres en raya, cada movimiento pasado tiene una 
+identificación ID única asociada: es el número secuencial del movimiento. 
 
-  const [xIsNext, setXIsNext] = useState(true);
+Los movimientos nunca se reordenarán, eliminarán ni insertarán en el medio, 
+por lo que es seguro utilizar el índice de movimientos como clave.
+
+En la función Game(), puedo agregar la clave como <li key={move}>
+*/
+export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
-  const currentSquares = history[history.length - 1];
-  
+  const [currentMove, setCurrentMove] = useState(0);
+  /*
+    Antes de poder implementar jumpTo, necesita que el componente Game realice 
+    un seguimiento de qué paso está viendo el usuario actualmente. 
+       
+    Para hacer esto, defina una nueva variable de estado llamada currentMove, 
+    cuyo valor predeterminado es 0.
+  */
+  const xIsNext = currentMove % 2 === 0;
+  const currentSquares = history[currentMove];
 
   function handlePlay(nextSquares) {
-    setHistory([...history, nextSquares]);
-    setXIsNext(!xIsNext);
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1);
   }
 
   function jumpTo(nextMove) {
-    // TODO
+    setCurrentMove(nextMove);
   }
-
-
-  /*
-  Ya tenemos una serie de movimientos en estado history, por lo que ahora 
-  necesitamos transformarlos en una serie de elementos de React. 
-  
-  En JavaScript, para transformar una matriz en otra, puedes usar el método 
-  de matriz :map  
-
-  [1, 2, 3].map((x) => x * 2) // [2, 4, 6]
-
-  Usamos map para transformar los movimientos history en elementos de React 
-  que representan botones en la pantalla y mostrarás una lista de botones 
-  para "saltar = jump" a movimientos pasados. 
-  */
 
   const moves = history.map((squares, move) => {
     let description;
     if (move > 0) {
-      description = 'Ir a la jugada #' + move;
+      description = 'Go to move #' + move;
     } else {
-      description = 'Reiniciar el juego';
+      description = 'Go to game start';
     }
     return (
-      <li>
+      <li key={move}>
         <button onClick={() => jumpTo(move)}>{description}</button>
       </li>
     );
   });
-
-  /*
-  A medida que iteras a través de la matriz history dentro de la función 
-  que le pasaste map, el argumento 'squares' pasa por cada elemento de history 
-  y el argumento 'move' pasa por cada índice de la matriz: 0, 1,2 ,….
-
-  (En la mayoría de los casos, necesitará los elementos reales de la matriz, 
-   pero para representar una lista de movimientos solo necesitará índices).
-
-  Para cada movimiento en el historial del juego de tres en raya, creas un 
-  elemento de lista <li>que contiene un botón <button>. 
-  
-  El botón tiene un onClickcontrolador que llama a una función llamada jumpTo()
-  (que aún no se ha implementado).
-  */
 
   return (
     <div className="game">
@@ -135,15 +120,13 @@ function calculateWinner(squares) {
     [1, 4, 7],
     [2, 5, 8],
     [0, 4, 8],
-    [2, 4, 6]
+    [2, 4, 6],
   ];
   for (let i = 0; i < lines.length; i++) {
-
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
       return squares[a];
     }
   }
-
   return null;
 }
