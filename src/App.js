@@ -1,25 +1,20 @@
-import logo from './logo.svg';
-import './App.css';
+/*
+El código App.js crea un componente. 
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+En React, un componente es una pieza de código reutilizable que representa 
+una parte de una interfaz de usuario. 
+
+Los componentes se utilizan para representar, administrar y actualizar los 
+elementos de la interfaz de usuario en su aplicación.
+*/
+
+export default function Square() {
+  return <button className="square">X</button>;
 }
 
-export default App;
+/*
+export, permite que sea accesible fuera de este archivo.
+
+default, le dice a otros archivos que usan este código que es la función 
+principal de este archivo.
+*/
