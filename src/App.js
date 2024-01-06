@@ -1,31 +1,5 @@
 import { useState } from 'react';
 
-/*
-Almacenamiento de un historial de movimientos
-
-Si mutaste elsquares matriz, implementar el viaje en el tiempo sería muy difícil.
-
-Sin embargo, slice() crea una nueva copia de la matriz squares después de cada 
-movimiento y la tratabas como inmutable. Esto le permitirá almacenar todas las 
-versiones anteriores delsquares matriz y navegar entre los giros que ya han ocurrido.
-
-Almacenará las matrices squares anteriores en otra matriz llamada history, que 
-almacenará como una nueva variable de estado. 
-
-La matriz history representa todos los estados del tablero, desde el primero 
-hasta el último movimiento, y tiene una forma como esta:
-
-[
-  // Before first move
-  [null, null, null, null, null, null, null, null, null],
-  // After first move
-  [null, null, null, null, 'X', null, null, null, null],
-  // After second move
-  [null, null, null, null, 'X', null, null, null, 'O'],
-  // ...
-]
-*/
-
 function Square({ value, onSquareClick }) {
   return (
     <button className="square" onClick={onSquareClick}>
@@ -34,18 +8,7 @@ function Square({ value, onSquareClick }) {
   );
 }
 
-// export default, este ya nos es el componente de nivel superior 
-// del archivo: index.js, ahora es Game()
 function Board({ xIsNext, squares, onPlay }) {
-  /*
-  El componente Board está completamente controlado por los props que recibe. 
-  Cambiamos el componente Board para que admita tres props: xIsNext, squares y 
-  una nueva función onPlay() que Board puede llamar con la matriz de cuadrados 
-  actualizada cuando un jugador realiza un movimiento.
-
-  El componente Board está totalmente controlado por los props que le pasa el 
-  componente Game. 
-  */
 
   function handleClick(i) {
     if (calculateWinner(squares) || squares[i]) {
@@ -91,50 +54,64 @@ function Board({ xIsNext, squares, onPlay }) {
 }
 
 
-/*
-Creamos un nuevo componente de nivel superior llamado Game para mostrar una 
-lista de movimientos pasados. Ahí es donde colocarás elhistory estado que 
-contiene todo el historial del juego.
-
-Colocar el estado history en el componente Game le permitirá eliminar el 
-estado squares de su componente secundario Board. Así como “levantó el estado” 
-del componente Square al componente Board, ahora lo elevará del componente Board
-al nivel superior Game. 
-
-Esto le da al componente Game control total sobre los datos de Board, y le permite 
-indicarle que Board renderice giros anteriores desde history.
-*/
-
 export default function Game() {
 
   const [xIsNext, setXIsNext] = useState(true);
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const currentSquares = history[history.length - 1];
-  /*
-  agregamos los estados para rastrear qué jugador es el siguiente 
-  y el historial de movimientos.
-
-  [Array(9).fill(null)] es una matriz con un solo elemento, que a su vez es 
-  una matriz de 9 nulls.
-  */
+  
 
   function handlePlay(nextSquares) {
     setHistory([...history, nextSquares]);
     setXIsNext(!xIsNext);
   }
-  /*
-  Creamos una función handlePlay() dentro del componente Game que será llamada 
-  por el componente Board para actualizar el juego. Pase xIsNext y currentSquares 
-  como props de handlePlay para el componente Board.
-  
 
-  La función handlePlay() necesita actualizar el estado de Game para activar 
-  una nueva representación, pero ya no tiene una función setSquares a la que 
-  pueda llamar; ahora está usando la variable de estado history para almacenar 
-  esta información. Querrá actualizar history agregando la matriz squares 
-  actualizada como una nueva entrada del historial. 
+  function jumpTo(nextMove) {
+    // TODO
+  }
+
+
+  /*
+  Ya tenemos una serie de movimientos en estado history, por lo que ahora 
+  necesitamos transformarlos en una serie de elementos de React. 
   
-  También desea alternar xIsNext, tal como solía hacer Board.
+  En JavaScript, para transformar una matriz en otra, puedes usar el método 
+  de matriz :map  
+
+  [1, 2, 3].map((x) => x * 2) // [2, 4, 6]
+
+  Usamos map para transformar los movimientos history en elementos de React 
+  que representan botones en la pantalla y mostrarás una lista de botones 
+  para "saltar = jump" a movimientos pasados. 
+  */
+
+  const moves = history.map((squares, move) => {
+    let description;
+    if (move > 0) {
+      description = 'Ir a la jugada #' + move;
+    } else {
+      description = 'Reiniciar el juego';
+    }
+    return (
+      <li>
+        <button onClick={() => jumpTo(move)}>{description}</button>
+      </li>
+    );
+  });
+
+  /*
+  A medida que iteras a través de la matriz history dentro de la función 
+  que le pasaste map, el argumento 'squares' pasa por cada elemento de history 
+  y el argumento 'move' pasa por cada índice de la matriz: 0, 1,2 ,….
+
+  (En la mayoría de los casos, necesitará los elementos reales de la matriz, 
+   pero para representar una lista de movimientos solo necesitará índices).
+
+  Para cada movimiento en el historial del juego de tres en raya, creas un 
+  elemento de lista <li>que contiene un botón <button>. 
+  
+  El botón tiene un onClickcontrolador que llama a una función llamada jumpTo()
+  (que aún no se ha implementado).
   */
 
   return (
@@ -143,7 +120,7 @@ export default function Game() {
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
       <div className="game-info">
-        <ol>{/*TODO*/}</ol>
+        <ol>{moves}</ol>
       </div>
     </div>
   );
