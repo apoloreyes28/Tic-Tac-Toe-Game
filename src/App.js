@@ -1,5 +1,31 @@
 import { useState } from 'react';
 
+/*
+Almacenamiento de un historial de movimientos
+
+Si mutaste elsquares matriz, implementar el viaje en el tiempo sería muy difícil.
+
+Sin embargo, slice() crea una nueva copia de la matriz squares después de cada 
+movimiento y la tratabas como inmutable. Esto le permitirá almacenar todas las 
+versiones anteriores delsquares matriz y navegar entre los giros que ya han ocurrido.
+
+Almacenará las matrices squares anteriores en otra matriz llamada history, que 
+almacenará como una nueva variable de estado. 
+
+La matriz history representa todos los estados del tablero, desde el primero 
+hasta el último movimiento, y tiene una forma como esta:
+
+[
+  // Before first move
+  [null, null, null, null, null, null, null, null, null],
+  // After first move
+  [null, null, null, null, 'X', null, null, null, null],
+  // After second move
+  [null, null, null, null, 'X', null, null, null, 'O'],
+  // ...
+]
+*/
+
 function Square({ value, onSquareClick }) {
   return (
     <button className="square" onClick={onSquareClick}>
@@ -8,40 +34,32 @@ function Square({ value, onSquareClick }) {
   );
 }
 
-export default function Board() {
+// export default, este ya nos es el componente de nivel superior 
+// del archivo: index.js, ahora es Game()
+function Board({ xIsNext, squares, onPlay }) {
+  /*
+  El componente Board está completamente controlado por los props que recibe. 
+  Cambiamos el componente Board para que admita tres props: xIsNext, squares y 
+  una nueva función onPlay() que Board puede llamar con la matriz de cuadrados 
+  actualizada cuando un jugador realiza un movimiento.
 
-  const [xIsNext, setXIsNext] = useState(true);
-  const [squares, setSquares] = useState(Array(9).fill(null));
+  El componente Board está totalmente controlado por los props que le pasa el 
+  componente Game. 
+  */
 
   function handleClick(i) {
-    if (squares[i] || calculateWinner(squares)) {
+    if (calculateWinner(squares) || squares[i]) {
       return;
     }
-    /*
-    Llamarás calculateWinner(squares) a la función Board del componente handleClick 
-    para comprobar si un jugador ha ganado.
-    */
-
     const nextSquares = squares.slice();
-
     if (xIsNext) {
       nextSquares[i] = "X";
     } else {
       nextSquares[i] = "O";
     }
-    // nextSquares[i] = "X";
-    setSquares(nextSquares);
-    setXIsNext(!xIsNext);
+    onPlay(nextSquares);
   }
 
-  /*
-  Para avisar a los jugadores cuando el juego ha terminado, puedes mostrar 
-  texto como "Ganador: X" o "Ganador: O". Para hacerlo, agregará una sección 
-  status al componente Board. 
-  
-  El estado mostrará el ganador si el juego ha terminado y si el juego continúa, 
-  mostrarás qué jugador es el siguiente turno
-  */
   const winner = calculateWinner(squares);
   let status;
   if (winner) {
@@ -74,13 +92,62 @@ export default function Board() {
 
 
 /*
-Ahora que los jugadores pueden turnarse, querrás mostrar cuándo se gana el 
-juego y no hay más turnos que hacer. Para hacer esto, agregará una función 
-auxiliar llamada calculateWinnerque toma una matriz de 9 cuadrados, busca 
-un ganador y devuelve 'X', 'O'o nullsegún corresponda. 
+Creamos un nuevo componente de nivel superior llamado Game para mostrar una 
+lista de movimientos pasados. Ahí es donde colocarás elhistory estado que 
+contiene todo el historial del juego.
 
-No importa si define calculateWinnerantes o después de Board. 
+Colocar el estado history en el componente Game le permitirá eliminar el 
+estado squares de su componente secundario Board. Así como “levantó el estado” 
+del componente Square al componente Board, ahora lo elevará del componente Board
+al nivel superior Game. 
+
+Esto le da al componente Game control total sobre los datos de Board, y le permite 
+indicarle que Board renderice giros anteriores desde history.
 */
+
+export default function Game() {
+
+  const [xIsNext, setXIsNext] = useState(true);
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const currentSquares = history[history.length - 1];
+  /*
+  agregamos los estados para rastrear qué jugador es el siguiente 
+  y el historial de movimientos.
+
+  [Array(9).fill(null)] es una matriz con un solo elemento, que a su vez es 
+  una matriz de 9 nulls.
+  */
+
+  function handlePlay(nextSquares) {
+    setHistory([...history, nextSquares]);
+    setXIsNext(!xIsNext);
+  }
+  /*
+  Creamos una función handlePlay() dentro del componente Game que será llamada 
+  por el componente Board para actualizar el juego. Pase xIsNext y currentSquares 
+  como props de handlePlay para el componente Board.
+  
+
+  La función handlePlay() necesita actualizar el estado de Game para activar 
+  una nueva representación, pero ya no tiene una función setSquares a la que 
+  pueda llamar; ahora está usando la variable de estado history para almacenar 
+  esta información. Querrá actualizar history agregando la matriz squares 
+  actualizada como una nueva entrada del historial. 
+  
+  También desea alternar xIsNext, tal como solía hacer Board.
+  */
+
+  return (
+    <div className="game">
+      <div className="game-board">
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+      </div>
+      <div className="game-info">
+        <ol>{/*TODO*/}</ol>
+      </div>
+    </div>
+  );
+}
 
 function calculateWinner(squares) {
   const lines = [
@@ -99,82 +166,7 @@ function calculateWinner(squares) {
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
       return squares[a];
     }
-    /* 
-    const [a, b, c] = lines[i];
-    Desestructura el array en la posición i del array lines. 
-    
-    Cada elemento de lines es en sí mismo un array de tres números que 
-    representan las posiciones en el tablero que deben ser evaluadas para 
-    determinar si hay un ganador. 
-
-    a, b y c ahora son variables que contienen esas tres posiciones.
-
-
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c])
-    Comprueba si la posición 'a' en el array squares tiene un valor 
-    (es diferente de null, undefined, false, 0, o una cadena de texto vacía) 
-    y si el valor en squares[a] es igual al valor en squares[b] y al valor 
-    en squares[c]. 
-    
-    Si estas condiciones son verdaderas, significa que hay tres símbolos iguales 
-    en línea, y por lo tanto, hay un ganador. 
-
-    return squares[a];
-    En caso de que haya un ganador, la función devuelve el símbolo que ha ganado 
-    (puede ser 'X' o 'O').
-    */ 
   }
-  
+
   return null;
 }
-/*
-La función calculateWinner() se encarga de verificar si hay un ganador en 
-el juego, basándose en el estado actual del tablero representado por el 
-array squares.
-
-Primero, se define un array llamado lines, que contiene todas las combinaciones 
-posibles de índices en el tablero que podrían formar una línea ganadora. 
-
-Cada subarray en lines representa una línea posible. Por ejemplo, [0, 1, 2] 
-indica que si los valores en las posiciones 0, 1 y 2 del array squares son 
-iguales, entonces hay un ganador.
-
-  [0, 1, 2]   O O O
-  [3, 4, 5]   O O O  
-  [6, 7, 8]   O O O
-
-  [0, 3, 6]
-   O
-   O
-   O   
-
-  [1, 4, 7]
-      O
-      O
-      O
-
-  [2, 5, 8]
-         O
-         O
-         O
-
-  [0, 4, 8]
-   O
-      O
-         O
-
-  [2, 4, 6]
-         O
-      O
-   O
-  
-Luego, la función calculateWinner() recorre cada una de estas líneas posibles 
-mediante un bucle for. Para cada línea, se extraen los índices a, b y c. 
-
-La función verifica si en el array squares, los valores en estas posiciones 
-son todos iguales y no son nulos (indicando que una ficha ha sido colocada 
-en esas posiciones). 
-
-Si esta condición se cumple, se retorna el valor de la ficha ganadora 
-(ya sea 'X' o 'O'), en caso contrario la función retorna null.
-*/
