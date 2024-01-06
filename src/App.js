@@ -1,30 +1,37 @@
-/*
-Los componentes de React deben devolver un único elemento JSX y no varios 
-elementos JSX adyacentes.
-*/
+function Square({ value }) {
+  // indica que al componente Square 
+  // se le puede pasar un prop llamado value
 
-// Square = cuadrado -> Board() = tablero
+  return <button className="square">{ value }</button>;
+}
+
 export default function Board() {
   return (
-      // envolver varios elementos JSX adyacentes
     <>
       <div className="board-row">
-                  {/* fila */}
 
-        <button className="square">1</button>
-        <button className="square">2</button>
-        <button className="square">3</button>
-                       {/* cuadrado = 1  2  3, inline-elements */}
+        {/* modifico esta etiqueta: <button className="square">1</button>
+            en un nuevo componente 
+            mucho mas corto y mas 
+            facil de manipular.  */}
+
+        <Square value="1"  />
+        <Square value="2"  />
+        <Square value="3"  />
+
+        {/* <Square/> paso a ser <Square value="1"/> 
+             ya que aqui le pasamos un prop: { value } */}
+
       </div>
       <div className="board-row">
-        <button className="square">4</button>
-        <button className="square">5</button>
-        <button className="square">6</button>
+        <Square value="4"  />
+        <Square value="5"  />
+        <Square value="6"  />
       </div>
       <div className="board-row">
-        <button className="square">7</button>
-        <button className="square">8</button>
-        <button className="square">9</button>
+        <Square value="7"  />
+        <Square value="8"  />
+        <Square value="9"  />
       </div>
     </>
   );
